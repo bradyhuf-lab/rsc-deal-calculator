@@ -1,0 +1,1125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>RSC Private Lending — Deal Approval Calculator</title>
+<meta name="description" content="Pre-qualify your next fix-and-flip, DSCR, bridge, or ground-up deal in 60 seconds. The same checks a hard money underwriter runs." />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:wght@400;700;900&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --navy: #0B1F33;
+    --navy-soft: #102E4F;
+    --red: #DC4545;
+    --red-dark: #B83838;
+    --gold: #C9A85A;
+    --ink: #121A24;
+    --stone: #6A7380;
+    --line: #E5E8EC;
+    --bg: #FAFAF7;
+    --card: #FFFFFF;
+    --green: #2E7D5B;
+    --amber: #B9852A;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: Inter, system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    line-height: 1.55;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: Merriweather, Georgia, serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--navy);
+    margin: 0;
+  }
+  a { color: var(--navy); }
+
+  .wrap { max-width: 720px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 72px; gap: 16px; }
+  header img.logo { width: 72px; height: 72px; display: block; }
+  .kicker {
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--stone);
+    font-weight: 600;
+    text-align: right;
+  }
+
+  .hero h1 {
+    font-size: clamp(36px, 5vw, 52px);
+    line-height: 1.08;
+    margin-bottom: 20px;
+  }
+  .hero p.sub {
+    font-size: 17px;
+    color: var(--stone);
+    max-width: 520px;
+    margin: 0 0 48px 0;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 32px;
+  }
+  .card + .card { margin-top: 24px; }
+
+  .field { display: flex; flex-direction: column; margin-bottom: 20px; }
+  .field:last-child { margin-bottom: 0; }
+  label {
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: var(--navy);
+    margin-bottom: 8px;
+  }
+  input[type="number"], input[type="email"], select {
+    font-family: inherit;
+    font-size: 16px;
+    color: var(--ink);
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    outline: none;
+    transition: border-color 120ms ease, box-shadow 120ms ease;
+  }
+  input[type="number"]::-webkit-inner-spin-button,
+  input[type="number"]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+  input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+  }
+  input:focus, select:focus {
+    border-color: var(--navy);
+    box-shadow: 0 0 0 3px rgba(11, 31, 51, 0.08);
+  }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  @media (max-width: 560px) { .row { grid-template-columns: 1fr; } }
+  .hint { font-size: 12px; color: var(--stone); margin-top: 6px; line-height: 1.4; }
+  .field[data-hidden="true"] { display: none; }
+
+  .btn {
+    appearance: none;
+    border: 0;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    padding: 14px 22px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 120ms ease, transform 80ms ease;
+  }
+  .btn-primary { background: var(--red); color: #fff; width: 100%; }
+  .btn-primary:hover { background: var(--red-dark); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--navy);
+    border: 1px solid var(--line);
+    width: 100%;
+  }
+  .btn-ghost:hover { background: #F2F3F0; }
+
+  .micro {
+    font-size: 12px;
+    color: var(--stone);
+    margin-top: 12px;
+    text-align: center;
+  }
+
+  /* Result */
+  .result { display: none; }
+  .badge {
+    display: inline-block;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    font-weight: 700;
+    padding: 6px 10px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+  }
+  .badge.green { background: #E6F2EC; color: var(--green); }
+  .badge.amber { background: #FBF1DE; color: var(--amber); }
+  .badge.red { background: #FBE7E7; color: var(--red-dark); }
+
+  .result h2 {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+  .result .summary {
+    color: var(--stone);
+    font-size: 15px;
+    margin-bottom: 24px;
+  }
+  .metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px 0;
+    border-top: 1px solid var(--line);
+    border-bottom: 1px solid var(--line);
+    margin-bottom: 24px;
+  }
+  .metric .k {
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--stone);
+    font-weight: 600;
+  }
+  .metric .v {
+    font-family: Merriweather, Georgia, serif;
+    font-size: 24px;
+    color: var(--navy);
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  ul.flags { list-style: none; padding: 0; margin: 0 0 24px 0; }
+  ul.flags li {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+    font-size: 15px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+  }
+  ul.flags li:last-child { border-bottom: 0; }
+  ul.flags .dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    margin-top: 8px;
+    flex-shrink: 0;
+  }
+  ul.flags .dot.ok { background: var(--green); }
+  ul.flags .dot.warn { background: var(--amber); }
+  ul.flags .dot.bad { background: var(--red); }
+  ul.flags .fix {
+    margin-top: 6px;
+    font-size: 13px;
+    color: var(--stone);
+    line-height: 1.45;
+  }
+  ul.flags .fix::before {
+    content: 'Move to green: ';
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  .cta-final {
+    background: var(--navy);
+    color: #fff;
+    border-radius: 12px;
+    padding: 28px;
+    margin-top: 24px;
+    text-align: center;
+  }
+  .cta-final h3 {
+    color: #fff;
+    font-size: 22px;
+    margin-bottom: 8px;
+  }
+  .cta-final p {
+    color: rgba(255,255,255,0.75);
+    font-size: 14px;
+    margin: 0 0 20px 0;
+  }
+  .cta-final a.btn-gold {
+    display: inline-block;
+    background: var(--gold);
+    color: var(--navy);
+    font-weight: 700;
+    text-decoration: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    font-size: 14px;
+    letter-spacing: 0.02em;
+  }
+  .cta-final a.btn-gold:hover { filter: brightness(1.05); }
+
+  footer {
+    margin-top: 64px;
+    padding-top: 24px;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+    color: var(--stone);
+    line-height: 1.6;
+  }
+  footer a { color: var(--stone); text-decoration: none; }
+  footer a:hover { color: var(--navy); }
+  footer .top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; margin-bottom: 16px; }
+  footer .disclaimer { font-size: 11px; color: var(--stone); }
+  footer .disclaimer p { margin: 0 0 8px 0; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="logo.svg" alt="RSC Private Lending" class="logo" />
+    <div class="kicker">Deal Pre-Qualifier</div>
+  </header>
+
+  <section class="hero">
+    <h1>Will your deal actually get approved?</h1>
+    <p class="sub">Run the same checks a hard money underwriter runs. Sixty seconds, no phone call, no application fee.</p>
+  </section>
+
+  <!-- Step 1: Inputs -->
+  <section class="card" id="step-inputs">
+    <div class="row">
+      <!-- Property state (always) -->
+      <div class="field" style="grid-column: 1 / -1;">
+        <label for="propState">Property state</label>
+        <select id="propState">
+          <option value="">Select a state…</option>
+          <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
+          <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
+          <option>District of Columbia</option><option>Florida</option><option>Georgia</option><option>Hawaii</option>
+          <option>Idaho</option><option>Illinois</option><option>Indiana</option><option>Iowa</option>
+          <option>Kansas</option><option>Kentucky</option><option>Louisiana</option><option>Maine</option>
+          <option>Maryland</option><option>Massachusetts</option><option>Michigan</option><option>Minnesota</option>
+          <option>Mississippi</option><option>Missouri</option><option>Montana</option><option>Nebraska</option>
+          <option>Nevada</option><option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option>
+          <option>New York</option><option>North Carolina</option><option>North Dakota</option><option>Ohio</option>
+          <option>Oklahoma</option><option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option>
+          <option>South Carolina</option><option>South Dakota</option><option>Tennessee</option><option>Texas</option>
+          <option>Utah</option><option>Vermont</option><option>Virginia</option><option>Washington</option>
+          <option>West Virginia</option><option>Wisconsin</option><option>Wyoming</option>
+        </select>
+        <div class="hint">RSC lends in 45 states + DC. We'll let you know if your state isn't supported.</div>
+      </div>
+
+      <!-- Loan type (always) -->
+      <div class="field" style="grid-column: 1 / -1;">
+        <label for="loanType">Loan type</label>
+        <select id="loanType">
+          <option value="flip">Fix &amp; Flip</option>
+          <option value="dscr">DSCR Rental</option>
+          <option value="bridge">Bridge</option>
+          <option value="construction">Ground-Up Construction</option>
+        </select>
+      </div>
+
+      <!-- Fix & Flip fields -->
+      <div class="field" data-for="flip">
+        <label for="purchase">Purchase price</label>
+        <input type="number" id="purchase" placeholder="$250,000" />
+      </div>
+      <div class="field" data-for="flip">
+        <label for="rehab">Rehab budget</label>
+        <input type="number" id="rehab" placeholder="$100,000" />
+      </div>
+      <div class="field" data-for="flip">
+        <label for="arv">After Repair Value (ARV)</label>
+        <input type="number" id="arv" placeholder="$500,000" />
+      </div>
+
+      <!-- DSCR fields -->
+      <div class="field" data-for="dscr" style="grid-column: 1 / -1;">
+        <label for="dscrPurpose">Loan purpose</label>
+        <select id="dscrPurpose">
+          <option value="purchase">Purchase</option>
+          <option value="refi_rt">Refinance — rate &amp; term</option>
+          <option value="refi_cashout">Refinance — cash-out</option>
+        </select>
+      </div>
+      <div class="field" data-for="dscr">
+        <label for="dscrValue">Property value / purchase price</label>
+        <input type="number" id="dscrValue" placeholder="$350,000" />
+      </div>
+      <div class="field" data-for="dscr">
+        <label for="dscrRent">Expected monthly rent</label>
+        <input type="number" id="dscrRent" placeholder="$2,800" />
+      </div>
+      <div class="field" data-for="dscr" style="grid-column: 1 / -1;">
+        <label for="dscrPitia">Estimated monthly PITIA</label>
+        <input type="number" id="dscrPitia" placeholder="$2,200" />
+        <div class="hint">Principal, interest, taxes, insurance, and HOA combined. Use a rough mortgage estimate if you do not have a quote.</div>
+      </div>
+
+      <!-- Bridge fields -->
+      <div class="field" data-for="bridge">
+        <label for="brValue">Current property value</label>
+        <input type="number" id="brValue" placeholder="$400,000" />
+      </div>
+      <div class="field" data-for="bridge">
+        <label for="brLoan">Desired loan amount</label>
+        <input type="number" id="brLoan" placeholder="$280,000" />
+      </div>
+      <div class="field" data-for="bridge" style="grid-column: 1 / -1;">
+        <label for="brExit">Exit strategy</label>
+        <select id="brExit">
+          <option value="refi">Refinance into DSCR or long-term loan</option>
+          <option value="sale">Sell the property</option>
+          <option value="none">Not sure yet</option>
+        </select>
+      </div>
+
+      <!-- Ground-Up fields -->
+      <div class="field" data-for="construction">
+        <label for="guLand">Land cost (or current land value)</label>
+        <input type="number" id="guLand" placeholder="$120,000" />
+      </div>
+      <div class="field" data-for="construction">
+        <label for="guBuild">Hard construction cost</label>
+        <input type="number" id="guBuild" placeholder="$380,000" />
+      </div>
+      <div class="field" data-for="construction" style="grid-column: 1 / -1;">
+        <label for="guArv">Completed value (appraised ARV)</label>
+        <input type="number" id="guArv" placeholder="$750,000" />
+      </div>
+
+      <!-- Credit (all) -->
+      <div class="field" data-for="flip dscr bridge construction">
+        <label for="credit">Credit score</label>
+        <select id="credit">
+          <option value="high">720+</option>
+          <option value="mid">680 – 719</option>
+          <option value="low">640 – 679</option>
+          <option value="bad">Below 640</option>
+        </select>
+      </div>
+
+      <!-- Experience (varies by type) -->
+      <div class="field" data-for="flip">
+        <label for="expFlip">Prior completed flips</label>
+        <select id="expFlip">
+          <option value="5">5 or more</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+          <option value="0">None</option>
+        </select>
+      </div>
+      <div class="field" data-for="dscr">
+        <label for="expDscr">Rental units currently owned</label>
+        <select id="expDscr">
+          <option value="5">5 or more</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+          <option value="0">None</option>
+        </select>
+      </div>
+      <div class="field" data-for="bridge">
+        <label for="expBridge">Prior completed deals</label>
+        <select id="expBridge">
+          <option value="5">5 or more</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+          <option value="0">None</option>
+        </select>
+      </div>
+      <div class="field" data-for="construction">
+        <label for="expGu">Prior ground-up builds completed</label>
+        <select id="expGu">
+          <option value="5">5 or more</option>
+          <option value="4">4</option>
+          <option value="3">3</option>
+          <option value="2">2</option>
+          <option value="1">1</option>
+          <option value="0">None</option>
+        </select>
+      </div>
+
+      <!-- Liquidity (all) -->
+      <div class="field" data-for="flip bridge construction">
+        <label for="liquidity">Cash reserves on hand</label>
+        <select id="liquidity">
+          <option value="high">More than 15% of project cost</option>
+          <option value="mid">5% – 15% of project cost</option>
+          <option value="low">Less than 5% of project cost</option>
+        </select>
+      </div>
+      <div class="field" data-for="dscr">
+        <label for="dscrReserves">PITIA reserves in the bank</label>
+        <select id="dscrReserves">
+          <option value="high">6+ months</option>
+          <option value="mid">2 – 5 months</option>
+          <option value="low">Less than 2 months</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top: 28px;">
+      <button class="btn btn-primary" id="checkDeal">Check my deal</button>
+      <div class="micro">Results in 10 seconds. No credit pull.</div>
+    </div>
+  </section>
+
+  <!-- Step 2: Lead capture -->
+  <section class="card" id="step-email" style="display:none;">
+    <h2 style="font-size: 24px; margin-bottom: 10px;">One more step to see your result.</h2>
+    <p style="color: var(--stone); font-size: 15px; margin: 0 0 24px 0;">Quick details so we can send the breakdown and follow up if you want to talk a deal through.</p>
+    <div class="row">
+      <div class="field">
+        <label for="firstName">First name</label>
+        <input type="text" id="firstName" autocomplete="given-name" />
+      </div>
+      <div class="field">
+        <label for="lastName">Last name</label>
+        <input type="text" id="lastName" autocomplete="family-name" />
+      </div>
+      <div class="field" style="grid-column: 1 / -1;">
+        <label for="email">Email</label>
+        <input type="email" id="email" placeholder="you@email.com" autocomplete="email" />
+      </div>
+      <div class="field" style="grid-column: 1 / -1;">
+        <label for="phone">Phone (optional)</label>
+        <input type="tel" id="phone" placeholder="(555) 555-5555" autocomplete="tel" />
+        <div class="hint">By entering a phone number you agree to receive SMS from RSC Private Lending. Msg &amp; data rates may apply. Reply STOP to opt out.</div>
+      </div>
+      <div class="field" style="grid-column: 1 / -1;">
+        <label for="timeline">Timeline to close</label>
+        <select id="timeline">
+          <option value="this_week">This week</option>
+          <option value="2_4_weeks">2–4 weeks</option>
+          <option value="1_3_months">1–3 months</option>
+          <option value="exploring">Just exploring</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-primary" id="showResult" style="margin-top: 8px;">See my scorecard</button>
+    <div class="micro">No spam. No sharing. Unsubscribe anytime.</div>
+  </section>
+
+  <!-- Step 3: Result -->
+  <section class="result" id="step-result">
+    <div class="card">
+      <span class="badge" id="resultBadge">—</span>
+      <h2 id="resultTitle">—</h2>
+      <p class="summary" id="resultSummary">—</p>
+
+      <div class="metrics">
+        <div class="metric"><div class="k" id="k1">—</div><div class="v" id="v1">—</div></div>
+        <div class="metric"><div class="k" id="k2">—</div><div class="v" id="v2">—</div></div>
+        <div class="metric"><div class="k" id="k3">—</div><div class="v" id="v3">—</div></div>
+        <div class="metric"><div class="k" id="k4">—</div><div class="v" id="v4">—</div></div>
+      </div>
+
+      <ul class="flags" id="flagList"></ul>
+    </div>
+
+    <div class="cta-final">
+      <h3>Want a real pre-approval?</h3>
+      <p>Pre-approvals in 2 hours. Closings in 10 business days. If we miss the deadline, you get $1,000.</p>
+      <a class="btn-gold" id="bookCall" href="https://rsclend.com" target="_blank" rel="noopener">Book a call with Aidan</a>
+    </div>
+  </section>
+
+  <footer>
+    <div class="top">
+      <div>RSC Private Lending · Red Sun Capital · AAPL Member</div>
+      <div><a href="https://rscprivatelending.com" target="_blank" rel="noopener">rscprivatelending.com</a></div>
+    </div>
+    <div class="disclaimer">
+      <p>Licensed where required. NMLS #[TBD pending verification]. Loans originated through institutional capital partners.</p>
+      <p>This calculator is for informational purposes only and does not constitute a commitment to lend. All loan terms, rates, and leverage are subject to full underwriting, property valuation, borrower qualification, and current capital markets conditions. Results shown are estimates based on the inputs provided and publicly stated program guidelines — actual terms may vary.</p>
+      <p>By entering a phone number you consent to receive SMS communication from RSC Private Lending regarding your inquiry. Message and data rates may apply. Message frequency varies. Reply STOP to opt out or HELP for help. Consent is not a condition of any loan. See our <a href="https://rscprivatelending.com" target="_blank" rel="noopener">privacy policy</a>.</p>
+      <p>RSC Private Lending finances non-owner-occupied, business-purpose real estate only. No owner-occupied or consumer-purpose loans.</p>
+    </div>
+  </footer>
+</div>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+  // ---------- Dynamic field visibility ----------
+  function syncFields() {
+    const type = $('loanType').value;
+    $$('[data-for]').forEach((el) => {
+      const allowed = el.getAttribute('data-for').split(/\s+/);
+      const show = allowed.includes(type);
+      el.setAttribute('data-hidden', show ? 'false' : 'true');
+    });
+  }
+  $('loanType').addEventListener('change', syncFields);
+  syncFields();
+
+  // ---------- Required-field check per loan type ----------
+  const requiredByType = {
+    flip: ['purchase', 'rehab', 'arv'],
+    dscr: ['dscrValue', 'dscrRent', 'dscrPitia'],
+    bridge: ['brValue', 'brLoan'],
+    construction: ['guLand', 'guBuild', 'guArv'],
+  };
+
+  $('checkDeal').addEventListener('click', () => {
+    const type = $('loanType').value;
+    if (!$('propState').value) {
+      alert('Please select the property state to continue.');
+      return;
+    }
+    const missing = requiredByType[type].some((id) => !Number($(id).value));
+    if (missing) {
+      alert('Fill in the dollar-amount fields to continue.');
+      return;
+    }
+    $('step-inputs').style.display = 'none';
+    $('step-email').style.display = 'block';
+    $('step-email').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // Lead capture endpoint — swap this for the real CRM webhook once Dan sets it up.
+  // Formsubmit forwards submissions to the destination email with zero setup.
+  // First submission requires one-time confirmation click in the inbox.
+  const LEAD_ENDPOINT = 'https://formsubmit.co/ajax/bradyhuf@gmail.com';
+
+  $('showResult').addEventListener('click', async () => {
+    const email = $('email').value.trim();
+    const firstName = $('firstName').value.trim();
+    const lastName = $('lastName').value.trim();
+    const phone = $('phone').value.trim();
+    const timeline = $('timeline').value;
+
+    if (!firstName || !lastName) {
+      alert('Please enter your first and last name.');
+      return;
+    }
+    if (!email || !/^\S+@\S+\.\S+$/.test(email)) {
+      alert('Enter a valid email to see your result.');
+      return;
+    }
+
+    const lead = collectLeadPayload({ firstName, lastName, email, phone, timeline });
+
+    // Fire-and-forget: we don't block the result reveal on network success.
+    try {
+      fetch(LEAD_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(lead),
+      }).catch(() => {});
+    } catch (e) { /* swallow */ }
+
+    // Local backup so no lead is ever lost if the webhook fails.
+    try {
+      const stored = JSON.parse(localStorage.getItem('rsc_leads') || '[]');
+      stored.push(lead);
+      localStorage.setItem('rsc_leads', JSON.stringify(stored));
+    } catch (e) { /* swallow */ }
+
+    runCalculator();
+    $('step-email').style.display = 'none';
+    $('step-result').style.display = 'block';
+    $('step-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  function collectLeadPayload({ firstName, lastName, email, phone, timeline }) {
+    const type = $('loanType').value;
+    const state = $('propState').value;
+    const urlParams = new URLSearchParams(window.location.search);
+    const utm = {
+      source: urlParams.get('utm_source') || '',
+      medium: urlParams.get('utm_medium') || '',
+      campaign: urlParams.get('utm_campaign') || '',
+      content: urlParams.get('utm_content') || '',
+    };
+    const inputs = {};
+    ['purchase','rehab','arv','dscrPurpose','dscrValue','dscrRent','dscrPitia',
+     'brValue','brLoan','brExit','guLand','guBuild','guArv',
+     'credit','expFlip','expDscr','expBridge','expGu',
+     'liquidity','dscrReserves'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) inputs[id] = el.value;
+    });
+    return {
+      _subject: 'New RSC Calculator lead: ' + firstName + ' ' + lastName,
+      firstName, lastName, email, phone, timeline,
+      loanType: type, propertyState: state,
+      inputs, utm,
+      submittedAt: new Date().toISOString(),
+      pageUrl: window.location.href,
+    };
+  }
+
+  const fmt = (n) => '$' + Math.round(n).toLocaleString();
+  const pct = (n) => (n * 100).toFixed(1) + '%';
+
+  // ---------- Calculator router ----------
+  function runCalculator() {
+    const type = $('loanType').value;
+    let out;
+    if (type === 'flip') out = calcFlip();
+    else if (type === 'dscr') out = calcDSCR();
+    else if (type === 'bridge') out = calcBridge();
+    else out = calcConstruction();
+    renderResult(out);
+  }
+
+  // ---------- Fix & Flip ----------
+  // All numbers sourced from Aidan's own scripts:
+  //   - Leverage pairs (90-100, 80-100, 80-90, 80-80) from "How Much Will a Hard Money Lender Actually Give You?"
+  //   - 75% ARV ceiling from "Hard Money Lending for Beginners" + client brief
+  //   - Credit tiers from "Credit Scores in Hard Money"
+  //   - Experience tiers from "Build Track Record from Zero"
+  //   - Closing costs always out of pocket (Calculation Examples script)
+  //   - 6-month interest reserves + $150K min loan from "Hard Money Lending for Beginners"
+  // Open for Aidan: exact leverage grid cell by cell, rehab-jump rule (see Q1, Q3 in questions doc).
+  function calcFlip() {
+    const purchase = Number($('purchase').value);
+    const rehab = Number($('rehab').value);
+    const arv = Number($('arv').value);
+    const credit = $('credit').value;
+    const exp = parseInt($('expFlip').value, 10);
+    const liquidity = $('liquidity').value;
+    const totalCost = purchase + rehab;
+
+    // Tier ladder: 1 = 90-100, 2 = 80-100, 3 = 80-90, 4 = 80-80.
+    // Credit and experience each imply a best-possible tier; the weaker of the two wins.
+    const creditTier = { high: 1, mid: 2, low: 3, bad: 4 }[credit];
+    const expTier = exp >= 5 ? 1 : exp >= 3 ? 2 : exp >= 1 ? 3 : 4;
+    const tierIndex = Math.max(creditTier, expTier);
+    const tiers = [
+      null,
+      { purchase: 0.90, rehab: 1.00, name: '90-100' },
+      { purchase: 0.80, rehab: 1.00, name: '80-100' },
+      { purchase: 0.80, rehab: 0.90, name: '80-90' },
+      { purchase: 0.80, rehab: 0.80, name: '80-80' },
+    ];
+    const tier = tiers[tierIndex];
+
+    const purchaseLoan = purchase * tier.purchase;
+    const rehabLoan = rehab * tier.rehab;
+    const tierLoan = purchaseLoan + rehabLoan;
+    const arvCap = arv * 0.75;
+    const loan = Math.min(tierLoan, arvCap);
+    const cashGap = totalCost - loan;
+
+    // Closing costs: 1.5 points origination (mid of 1–2) + $1,500 processing (mid of $1K–$2.5K).
+    const origination = loan * 0.015;
+    const processing = 1500;
+    const closingCosts = origination + processing;
+
+    // Reserves: 6 months of interest at ~9.5% (mid of "mid to high 8s" and the 10% example rate).
+    const reservesNeeded = (loan * 0.095 / 12) * 6;
+
+    const flags = [];
+    let verdict = 'green';
+
+    // Minimum loan amount ($150K per "Hard Money Lending for Beginners").
+    if (loan < 150000) {
+      flags.push(['bad', 'Loan under $150K — below most hard money minimums. Private money from a friend or family member may be a better fit.',
+        'Look for a larger deal (purchase price around $200K or higher) or consider private money for this one.']);
+      verdict = 'red';
+    }
+
+    // ARV cap check.
+    if (tierLoan > arvCap) {
+      flags.push(['warn', 'Your 75% ARV ceiling is tighter than your leverage tier — the loan caps at ARV, so expect more cash at closing.',
+        'Lower your offer price, trim the rehab scope, or push ARV higher so total project cost stays under 75% of ARV.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else {
+      flags.push(['ok', 'ARV ceiling is comfortable — loan stays under 75% of projected value.']);
+    }
+
+    // Credit flag.
+    if (credit === 'bad') {
+      flags.push(['bad', 'Credit below 640 — some loan products will not be available. Plan for reduced leverage and a higher rate.',
+        'Pull your full credit report, dispute errors, and pay down revolving balances. A 40–80 point jump unlocks better programs.']);
+      verdict = 'red';
+    } else if (credit === 'low') {
+      flags.push(['warn', 'Credit under 680 — expect lower leverage or a pricing exception. Still fundable.',
+        'Push credit above 680 (the key threshold) to unlock full leverage. Pay down cards below 30% utilization for the fastest bump.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else if (credit === 'mid') {
+      flags.push(['ok', 'Credit in the 680–719 band — fine, maybe a small pricing adjustment.']);
+    } else {
+      flags.push(['ok', 'Credit 720+ — top leverage, lowest rate, smoothest process.']);
+    }
+
+    // Experience flag.
+    if (exp === 0) {
+      flags.push(['warn', 'No prior flips documented — first-timer programs exist, but expect tighter leverage and extra documentation.',
+        'Get on the LLC for a partner\'s next deal. Even minority ownership counts if your name is on the operating agreement and closing docs.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else if (exp <= 2) {
+      flags.push(['ok', exp + ' prior flip' + (exp > 1 ? 's' : '') + ' documented — qualifies for standard programs.']);
+    } else if (exp <= 4) {
+      flags.push(['ok', exp + ' prior flips — solid track record, better leverage tier available.']);
+    } else {
+      flags.push(['ok', '5+ prior flips — top experience tier.']);
+    }
+
+    // Rehab-jump flag (Script 03). Placeholder threshold: rehab ≥ 75% of purchase AND fewer than 3 prior flips.
+    if (rehab >= purchase * 0.75 && exp < 3) {
+      flags.push(['warn', 'Large rehab relative to purchase and limited track record — underwriting will want a GC with matching experience, a detailed scope of work, and a realistic budget.',
+        'Bring a licensed GC with projects at this scale, a line-item scope of work, and a detailed budget — not a number on a napkin.']);
+      if (verdict === 'green') verdict = 'amber';
+    }
+
+    flags.push(liquidityFlag(liquidity, verdict, (v) => verdict = v));
+
+    return {
+      verdict,
+      metrics: [
+        ['Leverage tier', tier.name],
+        ['Estimated loan', fmt(loan)],
+        ['Cash at closing', fmt(cashGap + closingCosts)],
+        ['Reserves needed (6 mo)', fmt(reservesNeeded)],
+      ],
+      flags,
+    };
+  }
+
+  // ---------- DSCR ----------
+  // LTV grid by purpose from Aidan's "DSCR Loans Explained" script:
+  //   Purchase: typically 80% LTV (sometimes 75% on weaker deals)
+  //   Rate-and-term refi: up to 75%
+  //   Cash-out refi: 65–70%
+  //   Minimum DSCR 1.0; preferred 1.1–1.25+
+  //   30-year term, min 3-year commitment (prepay 3 or 5 years)
+  //   Rate 1–1.5% above conventional
+  // Open for Aidan: min FICO, min loan amount, reserve months, no-ratio (Q4–Q7 in questions doc).
+  function calcDSCR() {
+    const purpose = $('dscrPurpose').value;
+    const value = Number($('dscrValue').value);
+    const rent = Number($('dscrRent').value);
+    const pitia = Number($('dscrPitia').value);
+    const credit = $('credit').value;
+    const exp = parseInt($('expDscr').value, 10);
+    const reserves = $('dscrReserves').value;
+
+    const dscr = rent / pitia;
+
+    // Base LTV by loan purpose (Aidan's numbers).
+    const baseLTV = { purchase: 0.80, refi_rt: 0.75, refi_cashout: 0.675 }[purpose];
+
+    // DSCR adjustment: 1.25+ gets baseline; 1.0–1.24 steps down 5 pts; below 1.0 steps down another 5 pts.
+    let ltv = baseLTV;
+    if (dscr < 1.0) ltv -= 0.10;
+    else if (dscr < 1.25) ltv -= 0.05;
+
+    // Credit adjustment.
+    if (credit === 'low') ltv -= 0.05;
+    if (credit === 'bad') ltv -= 0.10;
+    ltv = Math.max(ltv, 0.50);
+
+    const loan = value * ltv;
+    const downPayment = value - loan;
+
+    const purposeLabel = { purchase: 'purchase', refi_rt: 'rate-and-term refi', refi_cashout: 'cash-out refi' }[purpose];
+    const cashOrEquity = purpose === 'purchase' ? 'Down payment' : 'Equity required';
+
+    const flags = [];
+    let verdict = 'green';
+
+    // DSCR ratio flag.
+    if (dscr >= 1.25) {
+      flags.push(['ok', 'DSCR at ' + dscr.toFixed(2) + ' — strong. Rent comfortably covers PITIA, which unlocks best pricing.']);
+    } else if (dscr >= 1.0) {
+      flags.push(['warn', 'DSCR at ' + dscr.toFixed(2) + ' — fundable, but LTV steps down and the rate moves up. Most lenders prefer 1.1–1.25+.',
+        'Push DSCR above 1.25 by raising rent, shopping cheaper insurance, or bringing more equity to lower the loan amount.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else {
+      flags.push(['bad', 'DSCR at ' + dscr.toFixed(2) + ' — rent does not cover PITIA. Some no-ratio DSCR products exist, but expect lower LTV and a higher rate.',
+        'Either find a property with a higher rent-to-price ratio or bring enough equity that the smaller loan payment fits under the rent.']);
+      verdict = 'red';
+    }
+
+    // Credit flag.
+    if (credit === 'bad') {
+      flags.push(['bad', 'Credit below 640 — most DSCR programs decline at this score. Improve credit before applying.',
+        'Target 660+ as the DSCR minimum. Pay down revolving balances and dispute reporting errors for the fastest lift.']);
+      verdict = 'red';
+    } else if (credit === 'low') {
+      flags.push(['warn', 'Credit under 680 — DSCR lenders will knock LTV down and add a rate premium.',
+        'Push credit above 680 before applying — that unlocks the best LTV and pricing.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else {
+      flags.push(['ok', 'Credit tier qualifies for best DSCR pricing.']);
+    }
+
+    // Experience flag.
+    if (exp === 0) {
+      flags.push(['warn', 'No rental units owned — DSCR is more forgiving on experience than a flip loan, but first-time programs may tighten LTV.',
+        'Consider starting with a smaller property you can hold long-term; 12 months of rental history shifts you to standard programs.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else {
+      flags.push(['ok', 'Landlord experience documented — qualifies for standard DSCR programs.']);
+    }
+
+    // Reserves flag.
+    if (reserves === 'low') {
+      flags.push(['bad', 'Under 2 months of PITIA in reserves — most DSCR lenders want at least 6 months liquid after closing.',
+        'Build PITIA reserves to 6+ months before applying. Retirement accounts often count at 60–80% of balance.']);
+      verdict = 'red';
+    } else if (reserves === 'mid') {
+      flags.push(['warn', 'Reserves light — 6+ months preferred, especially on loans over $1M.',
+        'Push reserves to 6+ months of PITIA. Brokerage and retirement accounts typically count toward the requirement.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else {
+      flags.push(['ok', 'Reserves meet underwriting expectations.']);
+    }
+
+    // Prepayment penalty reminder (Aidan flags this explicitly).
+    flags.push(['ok', 'Heads up: DSCR loans carry a 3- or 5-year prepayment penalty. Applies even if you sell or refi early.']);
+
+    return {
+      verdict,
+      metrics: [
+        ['DSCR ratio', dscr.toFixed(2)],
+        ['LTV (' + purposeLabel + ')', pct(ltv)],
+        ['Estimated loan', fmt(loan)],
+        [cashOrEquity, fmt(downPayment)],
+      ],
+      flags,
+    };
+  }
+
+  // ---------- Bridge ----------
+  // Aidan's scripts define "bridge" as the category of all short-term loans (<2 years),
+  // including fix-and-flip, rehab, ground-up, value-add, and equity cash-out.
+  // He doesn't publish distinct LTV numbers for a pure stabilized-property bridge.
+  // Placeholder LTVs below — open for Aidan (Q8–Q11).
+  function calcBridge() {
+    const value = Number($('brValue').value);
+    const desired = Number($('brLoan').value);
+    const exit = $('brExit').value;
+    const credit = $('credit').value;
+    const exp = parseInt($('expBridge').value, 10);
+    const liquidity = $('liquidity').value;
+
+    const desiredLTV = desired / value;
+
+    let maxLTV = 0.75;
+    if (credit === 'low' || exp === 0) maxLTV = Math.min(maxLTV, 0.70);
+    if (credit === 'bad') maxLTV = Math.min(maxLTV, 0.65);
+
+    const approvedLoan = Math.min(desired, value * maxLTV);
+    const cashGap = desired - approvedLoan;
+
+    const flags = [];
+    let verdict = 'green';
+
+    if (desiredLTV <= maxLTV) {
+      flags.push(['ok', 'Requested LTV at ' + pct(desiredLTV) + ' — fits within the ceiling.']);
+    } else {
+      flags.push(['warn', 'Requested LTV at ' + pct(desiredLTV) + ' — over the ' + pct(maxLTV) + ' ceiling. Expect to bring more equity or drop the request.',
+        'Lower the requested loan to ' + fmt(value * maxLTV) + ' (or less) to stay under the ceiling.']);
+      if (verdict === 'green') verdict = 'amber';
+    }
+
+    if (exit === 'none') {
+      flags.push(['bad', 'No exit strategy identified — bridge lenders want a clear refi or sale plan within 6–12 months.',
+        'Pick a path now: scope the refi lender and terms, or list the property with a realistic timeline.']);
+      verdict = 'red';
+    } else if (exit === 'sale') {
+      flags.push(['ok', 'Exit via sale — straightforward path, as long as the market supports the timeline.']);
+    } else {
+      flags.push(['ok', 'Exit via refinance — make sure the long-term loan terms are already scoped.']);
+    }
+
+    if (credit === 'bad') {
+      flags.push(['bad', 'Credit below 640 — heavier overlays on bridge pricing and leverage.',
+        'Target 660+ before applying. Dispute reporting errors and pay down revolving balances for the fastest lift.']);
+      verdict = 'red';
+    } else if (credit === 'low') {
+      flags.push(['warn', 'Credit under 680 — expect tighter LTV and rate premium.',
+        'Push credit above 680 for the best bridge terms.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else {
+      flags.push(['ok', 'Credit tier supports standard bridge terms.']);
+    }
+
+    if (exp === 0) {
+      flags.push(['warn', 'First deal — bridge lenders may tighten LTV or require a stronger exit documentation package.',
+        'Partner with an experienced investor on the LLC, or come in with a tighter exit plan (signed purchase contract, pre-scoped refi).']);
+      if (verdict === 'green') verdict = 'amber';
+    } else {
+      flags.push(['ok', exp + '+ prior deal' + (exp > 1 ? 's' : '') + ' — qualifies for standard bridge terms.']);
+    }
+
+    flags.push(liquidityFlag(liquidity, verdict, (v) => verdict = v));
+
+    return {
+      verdict,
+      metrics: [
+        ['Requested LTV', pct(desiredLTV)],
+        ['Approved LTV', pct(approvedLoan / value)],
+        ['Approved loan', fmt(approvedLoan)],
+        ['Cash gap vs. request', fmt(Math.max(0, cashGap))],
+      ],
+      flags,
+    };
+  }
+
+  // ---------- Ground-Up Construction ----------
+  // From Aidan's "What to be wary of in ground-up construction":
+  //   - Draws are reimbursement (not upfront) — borrower fronts each stage
+  //   - GC must be approved by the lender before funding
+  //   - 10% contingency reserve locked up until completion
+  //   - Permits required at closing, no exceptions
+  // Open for Aidan: max LTC, ARV cap, land financing %, builder experience floor, owner-builder rule (Q12–Q16).
+  // LTC/ARV caps below are conservative placeholders pending his numbers.
+  function calcConstruction() {
+    const land = Number($('guLand').value);
+    const build = Number($('guBuild').value);
+    const arv = Number($('guArv').value);
+    const credit = $('credit').value;
+    const exp = parseInt($('expGu').value, 10);
+    const liquidity = $('liquidity').value;
+    const totalCost = land + build;
+
+    // Contingency reserve: 10% of construction budget, locked until completion.
+    const contingency = build * 0.10;
+
+    // Placeholder leverage — pending Aidan's confirmation.
+    let maxLTC = 0.85;
+    if (exp <= 2) maxLTC = Math.min(maxLTC, 0.80);
+    if (exp === 0) maxLTC = Math.min(maxLTC, 0.70);
+    if (credit === 'low') maxLTC = Math.min(maxLTC, 0.75);
+    if (credit === 'bad') maxLTC = Math.min(maxLTC, 0.65);
+
+    const arvCap = arv * 0.70;
+    const ltcLoan = totalCost * maxLTC;
+    const loan = Math.min(ltcLoan, arvCap);
+    const cashGap = totalCost - loan;
+
+    const flags = [];
+    let verdict = 'green';
+
+    if (ltcLoan > arvCap) {
+      flags.push(['warn', 'Your 70% ARV ceiling caps the loan before LTC does — expect more equity on day one.',
+        'Lower land or construction costs, or push completed value higher (better finishes, better comps) until the loan fits under 70% of ARV.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else {
+      flags.push(['ok', 'ARV coverage is comfortable — project stays under the 70% completed-value ceiling.']);
+    }
+
+    // Contingency reserve — always flagged on ground-up.
+    flags.push(['warn', 'Plan for a 10% contingency reserve on construction costs — that is roughly ' + fmt(contingency) + ' locked up until completion. Build this into your cash plan.',
+      'Set aside ' + fmt(contingency) + ' in a separate account before closing so it is ready when the lender requires it.']);
+    if (verdict === 'green') verdict = 'amber';
+
+    // GC and permits — always flagged (can kill the deal pre-close).
+    flags.push(['warn', 'Your general contractor must be approved by the lender before funding. Have their license, portfolio, and references ready.',
+      'Collect the GC\'s license number, list of completed projects at this scale, and 2–3 references before you even apply.']);
+    flags.push(['warn', 'Permits must be in hand at closing — no permits, no close, no exceptions.',
+      'Start permit application now. In most jurisdictions this takes 4–12 weeks; plan your close date after permits are issued.']);
+
+    // Draw schedule reminder.
+    flags.push(['ok', 'Draws are reimbursement-based — you front each stage and the lender repays after inspection. Plan cash flow around the gap.']);
+
+    // Experience flag.
+    if (exp === 0) {
+      flags.push(['warn', 'First build — underwriting will lean heavily on your GC\'s track record. Budget, scope, and inspections get scrutinized per draw.',
+        'Hire a GC with multiple completed builds at this scale and get their resume, license, and references into the submission package.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else if (exp <= 2) {
+      flags.push(['ok', exp + ' prior build' + (exp > 1 ? 's' : '') + ' — qualifies for standard ground-up programs.']);
+    } else {
+      flags.push(['ok', 'Experienced builder — top leverage tier available.']);
+    }
+
+    // Credit flag.
+    if (credit === 'bad') {
+      flags.push(['bad', 'Credit below 640 — ground-up lenders are typically stricter than flip lenders on credit.',
+        'Target 680+ before applying. Ground-up programs have fewer options at low FICO than fix & flip.']);
+      verdict = 'red';
+    } else if (credit === 'low') {
+      flags.push(['warn', 'Credit under 680 — lower LTC and higher rate on ground-up programs.',
+        'Push credit above 680 before applying to unlock standard ground-up terms.']);
+      if (verdict === 'green') verdict = 'amber';
+    } else {
+      flags.push(['ok', 'Credit tier supports best ground-up terms.']);
+    }
+
+    flags.push(liquidityFlag(liquidity, verdict, (v) => verdict = v));
+
+    return {
+      verdict,
+      metrics: [
+        ['Loan-to-Cost', pct(loan / totalCost)],
+        ['Estimated loan', fmt(loan)],
+        ['Cash at closing', fmt(cashGap)],
+        ['Contingency locked', fmt(contingency)],
+      ],
+      flags,
+    };
+  }
+
+  // Shared liquidity flag — returns a [level, text, fix?] tuple and mutates verdict via setter.
+  function liquidityFlag(liquidity, verdict, setVerdict) {
+    if (liquidity === 'low') {
+      setVerdict('red');
+      return ['bad', 'Reserves under 5% of project cost — underwriting wants cushion for overruns and carry. This alone can kill a file.',
+        'Build reserves to at least 6 months of interest payments before applying, or ask about an interest reserve built into the loan.'];
+    }
+    if (liquidity === 'mid') {
+      if (verdict === 'green') setVerdict('amber');
+      return ['warn', 'Reserves tight — ask about interest reserves to lower monthly cash outflow.',
+        'Push reserves to 15%+ of project cost, or add an interest reserve to the loan to cover monthly payments from the loan proceeds.'];
+    }
+    return ['ok', 'Reserves strong — underwriting will be comfortable with carry and overrun risk.'];
+  }
+
+  // ---------- Render ----------
+  function renderResult({ verdict, metrics, flags }) {
+    const badge = $('resultBadge');
+    const title = $('resultTitle');
+    const summary = $('resultSummary');
+
+    if (verdict === 'green') {
+      badge.className = 'badge green';
+      badge.textContent = 'Likely approved';
+      title.textContent = 'Your deal fits the box.';
+      summary.textContent = 'On paper, this is the kind of file that moves quickly. Here is what to expect.';
+    } else if (verdict === 'amber') {
+      badge.className = 'badge amber';
+      badge.textContent = 'Fundable with conditions';
+      title.textContent = 'Your deal is workable — with a few adjustments.';
+      summary.textContent = 'There are a couple of items that will shape your terms. None are dealbreakers on their own.';
+    } else {
+      badge.className = 'badge red';
+      badge.textContent = 'Needs restructure';
+      title.textContent = 'As-is, this deal will struggle to clear underwriting.';
+      summary.textContent = 'One or more items below are hard stops for most programs. Talk to a broker before you submit.';
+    }
+
+    metrics.forEach(([k, v], i) => {
+      $('k' + (i + 1)).textContent = k;
+      $('v' + (i + 1)).textContent = v;
+    });
+
+    const list = $('flagList');
+    list.innerHTML = '';
+    flags.forEach((flag) => {
+      const [level, text, fix] = flag;
+      const li = document.createElement('li');
+      const dotClass = level === 'ok' ? 'ok' : level === 'warn' ? 'warn' : 'bad';
+      let body = escapeHtml(text);
+      if (fix) body += '<div class="fix">' + escapeHtml(fix) + '</div>';
+      li.innerHTML = '<span class="dot ' + dotClass + '"></span><span>' + body + '</span>';
+      list.appendChild(li);
+    });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+</script>
+</body>
+</html>
