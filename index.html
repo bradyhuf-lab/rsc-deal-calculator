@@ -617,7 +617,15 @@
       return;
     }
 
-    const lead = collectLeadPayload({ firstName, lastName, email, phone, timeline });
+    // Compute result BEFORE sending the lead so the verdict is included in the payload.
+    // This lets the CRM route leads by verdict (likely_approved / fundable / needs_restructure).
+    const type = $('loanType').value;
+    const result = type === 'flip' ? calcFlip()
+                 : type === 'dscr' ? calcDSCR()
+                 : type === 'bridge' ? calcBridge()
+                 : calcConstruction();
+
+    const lead = collectLeadPayload({ firstName, lastName, email, phone, timeline, result });
 
     // Fire-and-forget: we don't block the result reveal on network success.
     try {
@@ -635,13 +643,13 @@
       localStorage.setItem('rsc_leads', JSON.stringify(stored));
     } catch (e) { /* swallow */ }
 
-    runCalculator();
+    renderResult(result);
     $('step-email').style.display = 'none';
     $('step-result').style.display = 'block';
     $('step-result').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  function collectLeadPayload({ firstName, lastName, email, phone, timeline }) {
+  function collectLeadPayload({ firstName, lastName, email, phone, timeline, result }) {
     const type = $('loanType').value;
     const state = $('propState').value;
     const urlParams = new URLSearchParams(window.location.search);
@@ -659,12 +667,22 @@
       const el = document.getElementById(id);
       if (el) inputs[id] = el.value;
     });
+    // Map verdict to human-readable label for CRM tagging.
+    const verdictLabel = {
+      green: 'Likely Approved',
+      amber: 'Fundable With Conditions',
+      red: 'Needs Restructure',
+    }[result && result.verdict] || 'Unknown';
+
     return {
-      _subject: 'New RSC Calculator lead: ' + firstName + ' ' + lastName,
+      _subject: 'New RSC Calculator lead: ' + firstName + ' ' + lastName + ' (' + verdictLabel + ')',
       _cc: 'brady@huf.media',
       _template: 'table',
       firstName, lastName, email, phone, timeline,
       loanType: type, propertyState: state,
+      verdict: result ? result.verdict : null,
+      verdictLabel,
+      metrics: result ? result.metrics : null,
       inputs, utm,
       submittedAt: new Date().toISOString(),
       pageUrl: window.location.href,
@@ -674,16 +692,8 @@
   const fmt = (n) => '$' + Math.round(n).toLocaleString();
   const pct = (n) => (n * 100).toFixed(1) + '%';
 
-  // ---------- Calculator router ----------
-  function runCalculator() {
-    const type = $('loanType').value;
-    let out;
-    if (type === 'flip') out = calcFlip();
-    else if (type === 'dscr') out = calcDSCR();
-    else if (type === 'bridge') out = calcBridge();
-    else out = calcConstruction();
-    renderResult(out);
-  }
+  // Calculator router is inlined in the showResult handler above so the verdict
+  // can be included in the lead payload before rendering.
 
   // ---------- Fix & Flip ----------
   // All numbers sourced from Aidan's own scripts:
