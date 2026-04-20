@@ -547,7 +547,7 @@
     <div class="disclaimer">
       <p>Licensed where required. NMLS #[TBD pending verification]. Loans originated through institutional capital partners.</p>
       <p>This calculator is for informational purposes only and does not constitute a commitment to lend. All loan terms, rates, and leverage are subject to full underwriting, property valuation, borrower qualification, and current capital markets conditions. Results shown are estimates based on the inputs provided and publicly stated program guidelines — actual terms may vary.</p>
-      <p>By entering a phone number you consent to receive SMS communication from RSC Private Lending regarding your inquiry. Message and data rates may apply. Message frequency varies. Reply STOP to opt out or HELP for help. Consent is not a condition of any loan. See our <a href="https://rscprivatelending.com" target="_blank" rel="noopener">privacy policy</a>.</p>
+      <p>By entering a phone number you consent to receive SMS communication from RSC Private Lending regarding your inquiry. Message and data rates may apply. Message frequency varies. Reply STOP to opt out or HELP for help. Consent is not a condition of any loan. See our <a href="https://rscprivatelending.com/privacy-notice" target="_blank" rel="noopener">privacy notice</a> and <a href="https://rscprivatelending.com/terms-of-service" target="_blank" rel="noopener">terms of service</a>.</p>
       <p>RSC Private Lending finances non-owner-occupied, business-purpose real estate only. No owner-occupied or consumer-purpose loans.</p>
     </div>
   </footer>
@@ -593,10 +593,13 @@
     $('step-email').scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 
-  // Lead capture endpoint — swap this for the real CRM webhook once Dan sets it up.
-  // Formsubmit forwards submissions to the destination email with zero setup.
-  // First submission requires one-time confirmation click in the inbox.
-  const LEAD_ENDPOINT = 'https://formsubmit.co/ajax/bradyhuf@gmail.com';
+  // Lead capture endpoint.
+  // Primary: processing@rscprivatelending.com (RSC ops inbox — Dan confirmed 2026-04)
+  // CC: brady@huf.media (via _cc field in the payload)
+  // First submission to a new Formsubmit endpoint requires a one-time confirmation
+  // click in the primary inbox (standard Formsubmit activation).
+  // TODO: Swap for GHL webhook once Dan sends the URL.
+  const LEAD_ENDPOINT = 'https://formsubmit.co/ajax/processing@rscprivatelending.com';
 
   $('showResult').addEventListener('click', async () => {
     const email = $('email').value.trim();
@@ -658,6 +661,8 @@
     });
     return {
       _subject: 'New RSC Calculator lead: ' + firstName + ' ' + lastName,
+      _cc: 'brady@huf.media',
+      _template: 'table',
       firstName, lastName, email, phone, timeline,
       loanType: type, propertyState: state,
       inputs, utm,
