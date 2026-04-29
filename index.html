@@ -45,6 +45,8 @@
 
   header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 72px; gap: 16px; }
   header img.logo { width: 72px; height: 72px; display: block; }
+  header .logo-link { display: inline-block; line-height: 0; transition: opacity 120ms ease; }
+  header .logo-link:hover { opacity: 0.8; }
   .kicker {
     font-size: 11px;
     letter-spacing: 0.16em;
@@ -317,7 +319,9 @@
 <body>
 <div class="wrap">
   <header>
-    <img src="logo.svg" alt="RSC Private Lending" class="logo" />
+    <a href="https://rscprivatelending.com" class="logo-link" aria-label="RSC Private Lending homepage">
+      <img src="logo.svg" alt="RSC Private Lending" class="logo" />
+    </a>
     <div class="kicker">Deal Pre-Qualifier</div>
   </header>
 
